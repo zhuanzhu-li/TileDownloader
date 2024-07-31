@@ -1,4 +1,4 @@
-package test.test;
+package com.zhuanzhu;
 
 
 import java.io.Serializable;
@@ -109,14 +109,14 @@ public class TileGrid implements Serializable{
         this.envelope = envelope;
     }
 
-    public test.test.TileGrid getParent() {
+    public TileGrid getParent() {
         if (this.z == 0L)
             return null;
-        return new test.test.TileGrid((long)Math.floor(this.x / 2.0D), (long)Math.floor(this.y / 2.0D), this.z - 1L);
+        return new TileGrid((long)Math.floor(this.x / 2.0D), (long)Math.floor(this.y / 2.0D), this.z - 1L);
     }
 
-    public test.test.TileGrid getParentToZ(long targetZ) {
-        test.test.TileGrid target = this;
+    public TileGrid getParentToZ(long targetZ) {
+        TileGrid target = this;
         if (this.z < targetZ)
             throw new IllegalArgumentException("Illegal Argument.");
         while (target.getZ() > targetZ)
@@ -124,19 +124,19 @@ public class TileGrid implements Serializable{
         return target;
     }
 
-    public test.test.TileGrid[] getChildren() {
-        test.test.TileGrid[] result = new test.test.TileGrid[4];
-        result[0] = new test.test.TileGrid(this.x * 2L, this.y * 2L, this.z + 1L);
-        result[1] = new test.test.TileGrid(this.x * 2L + 1L, this.y * 2L, this.z + 1L);
-        result[2] = new test.test.TileGrid(this.x * 2L, this.y * 2L + 1L, this.z + 1L);
-        result[3] = new test.test.TileGrid(this.x * 2L + 1L, this.y * 2L + 1L, this.z + 1L);
+    public TileGrid[] getChildren() {
+        TileGrid[] result = new TileGrid[4];
+        result[0] = new TileGrid(this.x * 2L, this.y * 2L, this.z + 1L);
+        result[1] = new TileGrid(this.x * 2L + 1L, this.y * 2L, this.z + 1L);
+        result[2] = new TileGrid(this.x * 2L, this.y * 2L + 1L, this.z + 1L);
+        result[3] = new TileGrid(this.x * 2L + 1L, this.y * 2L + 1L, this.z + 1L);
         return result;
     }
 
-    public static LinkedList<test.test.TileGrid> getChildrenToZ(long x, long y, long z, long targetZ) {
-        LinkedList<test.test.TileGrid> targetTileGrids = new LinkedList<>();
+    public static LinkedList<TileGrid> getChildrenToZ(long x, long y, long z, long targetZ) {
+        LinkedList<TileGrid> targetTileGrids = new LinkedList<>();
         if (z == targetZ) {
-            targetTileGrids.add(new test.test.TileGrid(x, y, z));
+            targetTileGrids.add(new TileGrid(x, y, z));
             return targetTileGrids;
         }
         targetTileGrids.addAll(getChildrenToZ(x * 2L, y * 2L, z + 1L, targetZ));
@@ -146,9 +146,9 @@ public class TileGrid implements Serializable{
         return targetTileGrids;
     }
 
-    public static LinkedList<test.test.TileGrid> getTileGridsToZ(ReferencedEnvelope envelope, long z) {
-        LinkedList<test.test.TileGrid> targetTileGrids = new LinkedList<>();
-        test.test.TileGrid tileGrid = new test.test.TileGrid(envelope);
+    public static LinkedList<TileGrid> getTileGridsToZ(ReferencedEnvelope envelope, long z) {
+        LinkedList<TileGrid> targetTileGrids = new LinkedList<>();
+        TileGrid tileGrid = new TileGrid(envelope);
         if (tileGrid.getZ() > z) {
             targetTileGrids.add(tileGrid.getParentToZ(z));
         } else if (tileGrid.getZ() == z) {
@@ -175,7 +175,7 @@ public class TileGrid implements Serializable{
         return "Tile X: " + this.x + ", Y: " + this.y + ", Z: " + this.z + " (" + this.envelope + ")";
     }
 
-    public static LinkedList<test.test.TileGrid> getTilesFromZ(ReferencedEnvelope envelope, int z) {
+    public static LinkedList<TileGrid> getTilesFromZ(ReferencedEnvelope envelope, int z) {
         double resolution = ((Double)RESOLUTIONS.get(z)).doubleValue();
         double tileSize = 256.0D * resolution;
         long minX = (long)Math.floor((envelope
@@ -186,12 +186,12 @@ public class TileGrid implements Serializable{
                 .getMaximum(0) - WORLD_BOUNDS.getMinimum(0)) / tileSize);
         long maxY = (long)Math.floor((envelope
                 .getMaximum(1) + WORLD_BOUNDS.getMinimum(1)) / tileSize);
-        LinkedList<test.test.TileGrid> tileGrids = new LinkedList<>();
+        LinkedList<TileGrid> tileGrids = new LinkedList<>();
         long i;
         for (i = minX; i <= maxX; i++) {
             long j;
             for (j = minY; j <= maxY; j++)
-                tileGrids.add(new test.test.TileGrid(i, j, z));
+                tileGrids.add(new TileGrid(i, j, z));
         }
         return tileGrids;
     }

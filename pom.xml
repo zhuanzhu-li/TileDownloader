@@ -19,13 +19,20 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main-class>test.test.Main</main-class>
+        <main-class>com.zhuanzhu.Main</main-class>
         <swagger.version>2.9.2</swagger.version>
         <datasw.dcomm.version>1.0.0</datasw.dcomm.version>
         <geotools.version>23.0</geotools.version>
+        <yaml.version>2.2</yaml.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${yaml.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-metadata</artifactId>
