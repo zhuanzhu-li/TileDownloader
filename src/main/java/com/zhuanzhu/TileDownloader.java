@@ -4,6 +4,7 @@ import com.zhuanzhu.domain.DownloadConfig;
 import com.zhuanzhu.domain.PercentageVO;
 import com.zhuanzhu.utils.ListUtil;
 import com.zhuanzhu.utils.OwsUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -174,7 +175,8 @@ public class TileDownloader {
                 final String downloadUrl = downloadConfig.getUrl().replace("{z}", String.valueOf(zz))
                         .replace("{x}", String.valueOf(x))
                         .replace("{y}", String.valueOf(y)) +
-                        "?" + downloadConfig.getAuthKeyName() + "=" + downloadConfig.getKeyByWeight();
+                        (StringUtils.isNotEmpty(downloadConfig.getAuthKeyName()) ? "?" + downloadConfig.getAuthKeyName() + "=" + downloadConfig.getKeyByWeight() : "")
+                        ;
                 final String finalBashPath = savePath.replace("{z}", String.valueOf(zz))
                         .replace("{x}", String.valueOf(x))
                         .replace("{y}", String.valueOf(y));

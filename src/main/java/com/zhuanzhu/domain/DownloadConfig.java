@@ -48,6 +48,9 @@ public class DownloadConfig {
     }
 
     public String getKeyByWeight() {
+        if (authKeys == null || authKeys.isEmpty()) {
+            return "";
+        }
         if (authKeys.size() == 1) {
             return authKeys.get(0).getKey();
         }
