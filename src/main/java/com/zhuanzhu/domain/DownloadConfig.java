@@ -7,8 +7,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -34,10 +34,10 @@ public class DownloadConfig {
 
     private int[] weights;
 
-    public static DownloadConfig loadConfig(String configFileAbsPath) throws FileNotFoundException {
+    public static DownloadConfig loadConfig(String configFileAbsPath) throws IOException {
         Yaml yaml = new Yaml();
         File configFile = new File(configFileAbsPath);
-        Map<String, Object> data = yaml.load(new FileInputStream(configFile));
+        Map<String, Object> data = yaml.load(Files.newInputStream(configFile.toPath()));
         final String string = JSON.toJSONString(data);
         return JSON.parseObject(string, DownloadConfig.class);
     }

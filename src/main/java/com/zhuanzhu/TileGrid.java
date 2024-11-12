@@ -5,17 +5,23 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import lombok.Getter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+/**
+ * @author Liwq
+ */
 public class TileGrid implements Serializable{
 
     protected long x;
 
     protected long y;
 
+    @Getter
     protected long z;
 
     protected ReferencedEnvelope envelope;
@@ -36,38 +42,37 @@ public class TileGrid implements Serializable{
 
     public static final double METERS_PER_UNIT = 1.0D;
 
-    public static final List<Double> RESOLUTIONS = Arrays.asList(new Double[] {
-            Double.valueOf(156543.03390625D),
-            Double.valueOf(78271.516953125D),
-            Double.valueOf(39135.7584765625D),
-            Double.valueOf(19567.87923828125D),
-            Double.valueOf(9783.939619140625D),
-            Double.valueOf(4891.9698095703125D),
-            Double.valueOf(2445.9849047851562D),
-            Double.valueOf(1222.9924523925781D),
-            Double.valueOf(611.4962261962891D),
-            Double.valueOf(305.74811309814453D),
-            Double.valueOf(152.87405654907226D),
-            Double.valueOf(76.43702827453613D),
-            Double.valueOf(38.218514137268066D),
-            Double.valueOf(19.109257068634033D),
-            Double.valueOf(9.554628534317017D),
-            Double.valueOf(4.777314267158508D),
-            Double.valueOf(2.388657133579254D),
-            Double.valueOf(1.194328566789627D),
-            Double.valueOf(0.5971642833948135D),
-            Double.valueOf(0.2985821416974068D),
-            Double.valueOf(0.1492910708487034D),
-            Double.valueOf(0.0746455354243517D),
-            Double.valueOf(0.0373227677121758D),
-            Double.valueOf(0.0186613838560879D),
-            Double.valueOf(0.009330691928044D),
-            Double.valueOf(0.004665345964022D),
-            Double.valueOf(0.002332672982011D),
-            Double.valueOf(0.0011663364910055D),
-            Double.valueOf(5.831682455027E-4D),
-            Double.valueOf(2.915841227514E-4D),
-            Double.valueOf(1.457920613757E-4D) });
+    public static final List<Double> RESOLUTIONS = Arrays.asList(156543.03390625D,
+            78271.516953125D,
+            39135.7584765625D,
+            19567.87923828125D,
+            9783.939619140625D,
+            4891.9698095703125D,
+            2445.9849047851562D,
+            1222.9924523925781D,
+            611.4962261962891D,
+            305.74811309814453D,
+            152.87405654907226D,
+            76.43702827453613D,
+            38.218514137268066D,
+            19.109257068634033D,
+            9.554628534317017D,
+            4.777314267158508D,
+            2.388657133579254D,
+            1.194328566789627D,
+            0.5971642833948135D,
+            0.2985821416974068D,
+            0.1492910708487034D,
+            0.0746455354243517D,
+            0.0373227677121758D,
+            0.0186613838560879D,
+            0.009330691928044D,
+            0.004665345964022D,
+            0.002332672982011D,
+            0.0011663364910055D,
+            5.831682455027E-4D,
+            2.915841227514E-4D,
+            1.457920613757E-4D);
 
     static {
         try {
@@ -94,14 +99,11 @@ public class TileGrid implements Serializable{
         double maxx = this.envelope.getMaxX();
         double miny = this.envelope.getMinY();
         double maxy = this.envelope.getMaxY();
-        if (x >= minx && x < maxx && y >= miny && y < maxy)
-            return true;
-        return false;
+        return x >= minx && x < maxx && y >= miny && y < maxy;
     }
 
     public TileGrid(ReferencedEnvelope envelope) {
         double tileSize = envelope.getMaxX() - envelope.getMinX();
-        double resolution = tileSize / 256.0D;
         this.x = Math.round((envelope
                 .getMinimum(0) - WORLD_BOUNDS.getMinimum(0)) / tileSize);
         this.y = Math.round((envelope
@@ -110,17 +112,20 @@ public class TileGrid implements Serializable{
     }
 
     public TileGrid getParent() {
-        if (this.z == 0L)
+        if (this.z == 0L) {
             return null;
+        }
         return new TileGrid((long)Math.floor(this.x / 2.0D), (long)Math.floor(this.y / 2.0D), this.z - 1L);
     }
 
     public TileGrid getParentToZ(long targetZ) {
         TileGrid target = this;
-        if (this.z < targetZ)
+        if (this.z < targetZ) {
             throw new IllegalArgumentException("Illegal Argument.");
-        while (target.getZ() > targetZ)
+        }
+        while (target.getZ() > targetZ) {
             target = target.getParent();
+        }
         return target;
     }
 
@@ -159,24 +164,21 @@ public class TileGrid implements Serializable{
         return targetTileGrids;
     }
 
-    public long getZ() {
-        return this.z;
-    }
-
     protected ReferencedEnvelope envelope(long x, long y, long z) {
-        double resolution = ((Double)RESOLUTIONS.get((int)z)).doubleValue();
+        double resolution = RESOLUTIONS.get((int) z);
         double tileSize = 256.0D * resolution;
         double xMin = x * tileSize + WORLD_BOUNDS.getMinX();
         double yMin = y * tileSize - WORLD_BOUNDS.getMinY();
         return new ReferencedEnvelope(xMin, xMin + tileSize, yMin, yMin + tileSize, TILE_CRS);
     }
 
+    @Override
     public String toString() {
         return "Tile X: " + this.x + ", Y: " + this.y + ", Z: " + this.z + " (" + this.envelope + ")";
     }
 
     public static LinkedList<TileGrid> getTilesFromZ(ReferencedEnvelope envelope, int z) {
-        double resolution = ((Double)RESOLUTIONS.get(z)).doubleValue();
+        double resolution = RESOLUTIONS.get(z);
         double tileSize = 256.0D * resolution;
         long minX = (long)Math.floor((envelope
                 .getMinimum(0) - WORLD_BOUNDS.getMinimum(0)) / tileSize);
@@ -190,8 +192,9 @@ public class TileGrid implements Serializable{
         long i;
         for (i = minX; i <= maxX; i++) {
             long j;
-            for (j = minY; j <= maxY; j++)
+            for (j = minY; j <= maxY; j++) {
                 tileGrids.add(new TileGrid(i, j, z));
+            }
         }
         return tileGrids;
     }
