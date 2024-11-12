@@ -46,7 +46,7 @@ public class DownloadConfig {
         Object geom = data.get("geom");
         if(geom != null){
             try {
-                geometry = new WKBReader().read(WKBReader.hexToBytes(String.valueOf(geometry)));
+                geometry = new WKBReader().read(WKBReader.hexToBytes(String.valueOf(geom)));
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
