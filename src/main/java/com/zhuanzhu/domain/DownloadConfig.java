@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import lombok.Data;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -34,10 +37,20 @@ public class DownloadConfig {
 
     private int[] weights;
 
+    public static Geometry geometry;
+
     public static DownloadConfig loadConfig(String configFileAbsPath) throws IOException {
         Yaml yaml = new Yaml();
         File configFile = new File(configFileAbsPath);
         Map<String, Object> data = yaml.load(Files.newInputStream(configFile.toPath()));
+        Object geom = data.get("geom");
+        if(geom != null){
+            try {
+                geometry = new WKBReader().read(WKBReader.hexToBytes(String.valueOf(geometry)));
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }
         final String string = JSON.toJSONString(data);
         return JSON.parseObject(string, DownloadConfig.class);
     }

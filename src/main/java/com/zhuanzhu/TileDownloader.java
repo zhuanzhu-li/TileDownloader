@@ -6,6 +6,10 @@ import com.zhuanzhu.utils.ListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +45,7 @@ public class TileDownloader {
         for (int z = downloadConfig.getLevel().getMin(); z <= downloadConfig.getLevel().getMax(); z++) {
             log.info("{}", z);
             LinkedList<TileGrid> tileGrids = TileGrid.getTilesFromZ(envelope, z);
+            intersectGeom(tileGrids);
             log.info("z:{},{}", z, tileGrids.size());
             allTileGrids.addAll(tileGrids);
             File file = new File(downloadConfig.getSavePath() + z);
@@ -75,8 +80,7 @@ public class TileDownloader {
                 final String downloadUrl = downloadConfig.getUrl().replace("{z}", String.valueOf(zz))
                         .replace("{x}", String.valueOf(x))
                         .replace("{y}", String.valueOf(y)) +
-                        (StringUtils.isNotEmpty(downloadConfig.getAuthKeyName()) ? "?" + downloadConfig.getAuthKeyName() + "=" + downloadConfig.getKeyByWeight() : "")
-                        ;
+                        (StringUtils.isNotEmpty(downloadConfig.getAuthKeyName()) ? "?" + downloadConfig.getAuthKeyName() + "=" + downloadConfig.getKeyByWeight() : "");
                 final String finalBashPath = savePath.replace("{z}", String.valueOf(zz))
                         .replace("{x}", String.valueOf(x))
                         .replace("{y}", String.valueOf(y));
@@ -113,5 +117,36 @@ public class TileDownloader {
         fixedThreadPool.shutdown();
 
 
+    }
+
+    GeometryFactory gg = new GeometryFactory();
+    DefaultGeographicCRS wgs84 = DefaultGeographicCRS.WGS84;
+
+    private void intersectGeom(LinkedList<TileGrid> tileGrids) {
+        if (DownloadConfig.geometry == null) {
+            return;
+        }
+        for (int i = 0; i < tileGrids.size(); i++) {
+            TileGrid o = tileGrids.get(i);
+            try {
+                if (!DownloadConfig.geometry.intersects(o.referencedEnvelopeToPolygon())) {
+                    tileGrids.remove(o);
+                    i--;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+
+    private Polygon referencedEnvelopeToPolygon(ReferencedEnvelope transform) {
+        return gg.createPolygon(gg.createLinearRing(new Coordinate[]{
+                new Coordinate(transform.getMinX(), transform.getMinY()),
+                new Coordinate(transform.getMaxX(), transform.getMinY()),
+                new Coordinate(transform.getMaxX(), transform.getMaxY()),
+                new Coordinate(transform.getMinX(), transform.getMaxY()),
+                new Coordinate(transform.getMinX(), transform.getMinY())
+        }), null);
     }
 }

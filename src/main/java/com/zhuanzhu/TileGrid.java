@@ -10,8 +10,14 @@ import lombok.Getter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+
 /**
  * @author Liwq
  */
@@ -41,6 +47,8 @@ public class TileGrid implements Serializable{
     public static final CoordinateReferenceSystem TILE_CRS;
 
     public static final double METERS_PER_UNIT = 1.0D;
+
+    GeometryFactory gg = new GeometryFactory();
 
     public static final List<Double> RESOLUTIONS = Arrays.asList(156543.03390625D,
             78271.516953125D,
@@ -170,6 +178,17 @@ public class TileGrid implements Serializable{
         double xMin = x * tileSize + WORLD_BOUNDS.getMinX();
         double yMin = y * tileSize - WORLD_BOUNDS.getMinY();
         return new ReferencedEnvelope(xMin, xMin + tileSize, yMin, yMin + tileSize, TILE_CRS);
+    }
+
+    public Polygon referencedEnvelopeToPolygon() throws Exception {
+        ReferencedEnvelope transform = envelope.transform(WGS84, true);
+        return gg.createPolygon(gg.createLinearRing(new Coordinate[]{
+                new Coordinate(transform.getMinX(), transform.getMinY()),
+                new Coordinate(transform.getMaxX(), transform.getMinY()),
+                new Coordinate(transform.getMaxX(), transform.getMaxY()),
+                new Coordinate(transform.getMinX(), transform.getMaxY()),
+                new Coordinate(transform.getMinX(), transform.getMinY())
+        }), null);
     }
 
     @Override
