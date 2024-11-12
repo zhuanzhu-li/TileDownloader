@@ -84,7 +84,7 @@ public class TileGrid implements Serializable{
 
     static {
         try {
-            WGS84 = (CoordinateReferenceSystem)DefaultGeographicCRS.WGS84;
+            WGS84 = DefaultGeographicCRS.WGS84;
             TILE_CRS = CRS.decode("EPSG:3857");
             WORLD_BOUNDS = new ReferencedEnvelope(new Envelope(-2.00375083427892E7D, 2.00375083427892E7D, 2.00375083427892E7D, -2.00375083427892E7D), TILE_CRS);
             MAX_TILE_WIDTH = 2.00375083427892E7D;
@@ -180,14 +180,14 @@ public class TileGrid implements Serializable{
         return new ReferencedEnvelope(xMin, xMin + tileSize, yMin, yMin + tileSize, TILE_CRS);
     }
 
-    public Polygon referencedEnvelopeToPolygon() throws Exception {
-        ReferencedEnvelope transform = envelope.transform(WGS84, true);
+    public Polygon referencedEnvelopeToPolygon() {
+        TransBoundingBox transBoundingBox = TransBoundingBox.tile2boundingBox(x, y, z);
         return gg.createPolygon(gg.createLinearRing(new Coordinate[]{
-                new Coordinate(transform.getMinX(), transform.getMinY()),
-                new Coordinate(transform.getMaxX(), transform.getMinY()),
-                new Coordinate(transform.getMaxX(), transform.getMaxY()),
-                new Coordinate(transform.getMinX(), transform.getMaxY()),
-                new Coordinate(transform.getMinX(), transform.getMinY())
+                new Coordinate( transBoundingBox.west,transBoundingBox.north),
+                new Coordinate( transBoundingBox.east,transBoundingBox.north),
+                new Coordinate( transBoundingBox.east,transBoundingBox.south),
+                new Coordinate( transBoundingBox.west,transBoundingBox.south),
+                new Coordinate( transBoundingBox.west,transBoundingBox.north)
         }), null);
     }
 
