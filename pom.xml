@@ -24,6 +24,7 @@
         <datasw.dcomm.version>1.0.0</datasw.dcomm.version>
         <geotools.version>23.0</geotools.version>
         <yaml.version>2.2</yaml.version>
+
     </properties>
 
     <dependencies>
@@ -31,6 +32,11 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${yaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-geojson</artifactId>
+            <version>${geotools.version}</version>
         </dependency>
 
         <dependency>

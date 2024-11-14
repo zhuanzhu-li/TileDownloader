@@ -6,7 +6,6 @@ import com.zhuanzhu.utils.ListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
@@ -22,7 +21,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -41,11 +40,11 @@ public class TileDownloader {
     public void exe() throws Exception {
         CoordinateReferenceSystem crs = CRS.decode("EPSG:3857");
         ReferencedEnvelope envelope = downloadConfig.getWgsEnvelope().transform(crs, false);
-        List<TileGrid> allTileGrids = new LinkedList<>();
+        List<TileGrid> allTileGrids = new ArrayList<>();
         for (int z = downloadConfig.getLevel().getMin(); z <= downloadConfig.getLevel().getMax(); z++) {
             log.info("{}", z);
-            LinkedList<TileGrid> tileGrids = TileGrid.getTilesFromZ(envelope, z);
-            intersectGeom(tileGrids);
+            List<TileGrid> tileGrids = TileGrid.getTilesFromZ(envelope, z);
+            tileGrids = intersectGeom(tileGrids);
             log.info("z:{},{}", z, tileGrids.size());
             allTileGrids.addAll(tileGrids);
             File file = new File(downloadConfig.getSavePath() + z);
@@ -120,25 +119,37 @@ public class TileDownloader {
     }
 
     GeometryFactory gg = new GeometryFactory();
-    DefaultGeographicCRS wgs84 = DefaultGeographicCRS.WGS84;
 
-    private void intersectGeom(LinkedList<TileGrid> tileGrids) {
+    private List<TileGrid> intersectGeom(List<TileGrid> tileGrids) {
         if (DownloadConfig.geometry == null) {
-            return;
+            return tileGrids;
         }
+        ArrayList<TileGrid> tileGridArrayList = new ArrayList<>();
+        long start = System.currentTimeMillis();
+        int index = 0;
         for (int i = 0; i < tileGrids.size(); i++) {
+            index++;
             TileGrid o = tileGrids.get(i);
             try {
-                if (!DownloadConfig.geometry.intersects(o.referencedEnvelopeToPolygon())) {
-                    tileGrids.remove(o);
-                    i--;
+                if (isIntersects(o)) {
+                    tileGridArrayList.add(o);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
+            if (index % 1000 == 0) {
+                log.info("cost:{}", (System.currentTimeMillis() - start));
+                start = System.currentTimeMillis();
+            }
         }
+        return tileGridArrayList;
     }
+
+    private static boolean isIntersects(TileGrid o) {
+//        return BoundRtreeCache.stRtree.findFirstChild(o.referencedEnvelope()) != null;
+        return DownloadConfig.geometry.intersects(o.referencedEnvelopeToPolygon());
+    }
+
 
     private Polygon referencedEnvelopeToPolygon(ReferencedEnvelope transform) {
         return gg.createPolygon(gg.createLinearRing(new Coordinate[]{

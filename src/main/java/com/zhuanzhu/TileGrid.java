@@ -2,6 +2,7 @@ package com.zhuanzhu;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -181,14 +182,18 @@ public class TileGrid implements Serializable{
     }
 
     public Polygon referencedEnvelopeToPolygon() {
-        TransBoundingBox transBoundingBox = TransBoundingBox.tile2boundingBox(x, y, z);
+        TransBoundingBox transBoundingBox = TransBoundingBox.tile2boundingBox(x, Math.abs(y + 1L), z);
         return gg.createPolygon(gg.createLinearRing(new Coordinate[]{
-                new Coordinate( transBoundingBox.west,transBoundingBox.north),
-                new Coordinate( transBoundingBox.east,transBoundingBox.north),
-                new Coordinate( transBoundingBox.east,transBoundingBox.south),
-                new Coordinate( transBoundingBox.west,transBoundingBox.south),
-                new Coordinate( transBoundingBox.west,transBoundingBox.north)
+                new Coordinate(transBoundingBox.west, transBoundingBox.north),
+                new Coordinate(transBoundingBox.east, transBoundingBox.north),
+                new Coordinate(transBoundingBox.east, transBoundingBox.south),
+                new Coordinate(transBoundingBox.west, transBoundingBox.south),
+                new Coordinate(transBoundingBox.west, transBoundingBox.north)
         }), null);
+    }
+    public ReferencedEnvelope referencedEnvelope() {
+        TransBoundingBox transBoundingBox = TransBoundingBox.tile2boundingBox(x, Math.abs(y + 1L), z);
+        return new ReferencedEnvelope(transBoundingBox.west, transBoundingBox.east, transBoundingBox.south, transBoundingBox.north, TILE_CRS);
     }
 
     @Override
@@ -196,7 +201,7 @@ public class TileGrid implements Serializable{
         return "Tile X: " + this.x + ", Y: " + this.y + ", Z: " + this.z + " (" + this.envelope + ")";
     }
 
-    public static LinkedList<TileGrid> getTilesFromZ(ReferencedEnvelope envelope, int z) {
+    public static ArrayList<TileGrid> getTilesFromZ(ReferencedEnvelope envelope, int z) {
         double resolution = RESOLUTIONS.get(z);
         double tileSize = 256.0D * resolution;
         long minX = (long)Math.floor((envelope
@@ -207,7 +212,7 @@ public class TileGrid implements Serializable{
                 .getMaximum(0) - WORLD_BOUNDS.getMinimum(0)) / tileSize);
         long maxY = (long)Math.floor((envelope
                 .getMaximum(1) + WORLD_BOUNDS.getMinimum(1)) / tileSize);
-        LinkedList<TileGrid> tileGrids = new LinkedList<>();
+        ArrayList<TileGrid> tileGrids = new ArrayList<>();
         long i;
         for (i = minX; i <= maxX; i++) {
             long j;

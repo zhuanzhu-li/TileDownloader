@@ -54,6 +54,9 @@ public class Main {
             System.out.println(notMsg);
             return;
         }
+        if(downloadConfig.getBoundSelectEnable()){
+            BoundRtreeCache.init();
+        }
         TileDownloader down = new TileDownloader(downloadConfig);
         down.exe();
     }

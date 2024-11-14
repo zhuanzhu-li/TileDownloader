@@ -39,6 +39,8 @@ public class DownloadConfig {
 
     public static Geometry geometry;
 
+    private Boolean boundSelectEnable;
+
     public static DownloadConfig loadConfig(String configFileAbsPath) throws IOException {
         Yaml yaml = new Yaml();
         File configFile = new File(configFileAbsPath);
